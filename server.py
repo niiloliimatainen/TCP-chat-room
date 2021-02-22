@@ -21,10 +21,6 @@ s.bind((hostname, port))
 s.listen()
 
 
-# broadcast messages to every client
-def broadcast(msg):
-    for c in clients:
-        c.send(msg)
 
 
 def private_message(s_client, client_recv):
