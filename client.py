@@ -7,7 +7,7 @@
 #########################################
 import socket
 import threading
-import time
+import sys
 
 # host address and port number (local)
 hostname = "127.0.0.1"
@@ -18,45 +18,49 @@ nickname = input("Choose your nickname: ")
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.connect((hostname, port))
 
-
+# Function to receive messages from the server
 def receive():
     while True:
         try:
             msg = s.recv(1024).decode("utf-8")
             if msg == "NICK":
                 s.send(nickname.encode("utf-8"))
-            elif msg == "PRIV":
-                s.send(input("Give nickname for private message: ").encode("utf-8"))
-                msg = input("Write private message: ")
-            elif msg == "PRIV-MSG":
-                time = get_time()
-                s.send(time + " " + nickname + msg.encode("utf-8"))
+
             else:
                 print(msg)
         except:
             print("You have left the chat!")
             s.close()
+            sys.exit()
             break
 
 
+# Function to send client's messages
 def send():
     while True:
         msg = input("")
         if msg == "/exit":
             s.send(msg.encode("utf-8"))
-        elif msg == "/private":
+            s.close()
+            sys.exit()
+
+        elif msg == "/room1":
             s.send(msg.encode("utf-8"))
+
+        elif msg == "/room2":
+            s.send(msg.encode("utf-8"))
+
+        elif msg == "/default":
+            s.send(msg.encode("utf-8"))
+
+        elif msg[:4] == "/pm-":
+            split = msg.split(":", 1)
+            msg = split[0] + ":(private)" + nickname + ":" + split[1]
+            s.send(msg.encode("utf-8"))
+
         else:
-            time = get_time()
-            msg = time + " " + nickname + ": " + msg
+            msg = nickname + ": " + msg
             s.send(msg.encode("utf-8"))
-
-
-def get_time():
-    t = time.localtime()
-    current = time.strftime("%H:%M:%S", t)
-    return current
-
 
 # Threads for listening new messages and sending new messages
 rcv_thread = threading.Thread(target=receive)
